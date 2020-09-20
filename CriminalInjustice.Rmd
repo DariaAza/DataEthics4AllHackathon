@@ -1,0 +1,55 @@
+---
+title: "Change in Pre-trial Inmate Population"
+output: html_notebook
+---
+
+```{r}
+# loading the necessary packages
+library(tidyverse)
+library(ggplot2)
+library(gganimate)
+theme_set(theme_bw())
+```
+```{r}
+
+# loading the data that was preprocessed in python
+df_inmates <- read.csv("~/Downloads/counts.csv") 
+
+# saving the date column in date format
+df_inmates$date <- as.Date(df_inmates$date)
+
+df_inmates
+```
+```{r}
+
+
+inmates <- ggplot(df_inmates, aes(x = date, y = id, group = race, color = factor(race))) +
+        # specify the type of chart
+        geom_line() +
+        # choose a custom color scheme
+        scale_color_viridis_d() +
+        # make the chart animated
+        transition_reveal(date) +
+        # set the plot and axis titles, set text size and positions
+        theme(legend.position = "top",
+              axis.text.x = element_text(face = "bold", size = 14),
+              axis.text.y = element_text(face = "bold", size = 14),
+              plot.title = element_text(size=24),
+              plot.subtitle = element_text(face = "bold", size=18),
+              legend.text=element_text(size=14),
+              legend.title = element_text(size=16),
+              axis.title = element_text(face = "bold", size = 18)
+              ) +
+        labs(title = "Change in Pre-trial Inmate Population",
+             x = "Year",
+             y = "Number of Pre-trial Inmates",
+             colour = 'Race') +
+        scale_x_date(date_labels = "%Y-%m", date_breaks = "6 months")
+
+# set custom size
+animate(inmates, duration = 12, fps = 20, width = 900, height = 600, renderer = gifski_renderer())
+
+# save the animation
+anim_save("inmates.gif")
+```
+
