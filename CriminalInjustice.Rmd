@@ -21,13 +21,62 @@ df_inmates$date <- as.Date(df_inmates$date)
 df_inmates
 ```
 ```{r}
+branded_colors <- list(
+  "blue"   = "#00798c",
+  "red"    = "#d1495b",
+  "yellow" = "#edae49",
+  "green"  = "#66a182",
+  "navy"   = "#2e4057", 
+  "grey"   = "#8d96a3"
+)
 
+branded_pal <- function(
+  primary = "blue", 
+  other = "grey", 
+  direction = 1
+) {
+  stopifnot(primary %in% names(branded_colors))
+  
+  function(n) {
+    if (n > 6) warning("Branded Color Palette only has 6 colors.")
+    
+    if (n == 2) {
+      other <- if (!other %in% names(branded_colors)) {
+        other
+      } else {
+        branded_colors[other]
+      }
+      color_list <- c(other, branded_colors[primary])
+    } else {
+      color_list <- branded_colors[1:n]
+    }
+    
+    color_list <- unname(unlist(color_list))
+    if (direction >= 0) color_list else rev(color_list)
+  }
+}
+
+scale_colour_branded <- function(
+  primary = "blue", 
+  other = "grey", 
+  direction = 1, 
+  ...
+) {
+  ggplot2::discrete_scale(
+    "colour", "branded", 
+    branded_pal(primary, other, direction), 
+    ...
+  )
+}
+
+scale_color_branded <- scale_colour_branded
 
 inmates <- ggplot(df_inmates, aes(x = date, y = id, group = race, color = factor(race))) +
         # specify the type of chart
         geom_line() +
         # choose a custom color scheme
-        scale_color_viridis_d() +
+        scale_colour_branded(other="yellow") +
+        #scale_fill_manual(values=c("#CC6666", "#9999CC", "black"))+
         # make the chart animated
         transition_reveal(date) +
         # set the plot and axis titles, set text size and positions
@@ -38,6 +87,7 @@ inmates <- ggplot(df_inmates, aes(x = date, y = id, group = race, color = factor
               plot.subtitle = element_text(face = "bold", size=18),
               legend.text=element_text(size=14),
               legend.title = element_text(size=16),
+              legend.key.size = unit(2,"cm"),
               axis.title = element_text(face = "bold", size = 18)
               ) +
         labs(title = "Change in Pre-trial Inmate Population",
